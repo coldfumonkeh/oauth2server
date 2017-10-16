@@ -114,7 +114,8 @@ The contents of the `access_token` string, when decoded, will look similar to th
 	"sub":1000,
 	"exp":1508161712,
 	"scope":"read-private,write",
-	"aud":"BF23473E-A6AA-477D-ADDEB3A6DC24D28E"}
+	"aud":"BF23473E-A6AA-477D-ADDEB3A6DC24D28E"
+}
 ```
 
 When your application received the `access_token` and decodes it, you can easily detect which user it is attributed to. Here's a breakdown of the properties:
@@ -137,7 +138,7 @@ The contents of the `refresh_token` string, when decoded, will look similar to t
 	"sub":1000,
 	"scope":"read-private,write",
 	"aud":"BF23473E-A6AA-477D-ADDEB3A6DC24D28E"
-	}
+}
 ```
 
 You can see that the decoded token value closely resembles that of the `access_token` with one major difference as it does not include an expiry time.
