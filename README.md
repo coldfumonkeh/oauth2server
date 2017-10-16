@@ -24,6 +24,52 @@ var oOauth2Server = new oauth2server(
 );
 ```
 
+### Generating an authorization code
+
+To generate an authorization code (the first step in the OAuth2 server-side flow) simply provide the `userId` from the resource owner (after they have logged into your application), the `clientId` and the provided `redirect_uri` value:
+
+```
+var authCode = oOAuth2Server.generateAuthCode(
+	userId       = userId,
+	clientId     = clientId,
+	redirect_uri = redirectURI
+);
+```
+
+This will generate a self-signed authorization code. As such, you do not need to store it in any database for persistence (ideal for distributed systems).
+
+The returned auth code will resemble the following:
+
+```
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MDgxNTkwODEsInN1YiI6MTAwMCwiZXhwIjoxNTA4MTU5MTExLCJyZWRpcmVjdF91cmkiOiJodHRwczovL215Y2FsbGJhY2suZmFrZSIsImF1ZCI6IkJGMjM0NzNFLUE2QUEtNDc3RC1BRERFQjNBNkRDMjREMjhFIn0.JGZ1WMBXXE4BE5iwdmkrq5mJYK6lirkTqChWdy0IS1s
+```
+
+When it is sent back to your server to request the access token, you can decode it to obtain the necessary data:
+
+```
+var stuAuthCodeData = oOAuth2Server.decode( authCode );
+```
+
+In this example, `stuAuthCodeData` will contain the following information within the structure:
+
+```
+{
+	"iat":1508159081,
+	"sub":1000,
+	"exp":1508159111,
+	"redirect_uri":"https://mycallback.fake",
+	"aud":"BF23473E-A6AA-477D-ADDEB3A6DC24D28E"
+}
+```
+
+* `iat`: issued at time (in seconds)
+* `sub`: the subscriber - the userId / resource owner Id
+* `exp`: the expiry time (in seconds)
+* `redirect_uri`: the redirect uri value to validate against the client application
+* `aud`: the audience that should be consuming this request (the client application)
+
+It is important to note that the authorization code is only valid for 30 seconds to avoid any interference.
+
 ### Generating an Access Token
 
 To generate an access token you need to pass in the `userId`, `clientId` and `issuer` values. The `scope` argument is optional and will default to an empty array if not provided.

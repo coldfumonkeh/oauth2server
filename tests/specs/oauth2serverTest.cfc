@@ -144,8 +144,6 @@ component extends='testbox.system.BaseSpec'{
 
 				expect( authCode ).toBeString();
 
-				debug( authCode );
-
 				// Decode the JWT to compare access token data
 				var stuAuthCodeData = oOAuth2Server.decode( authCode );
 
