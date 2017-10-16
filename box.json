@@ -1,0 +1,71 @@
+{
+    "name":"OAuth2 Server",
+    "slug":"oauth2-server",
+    "version":"1.0.0",
+    "author":"Matt Gifford (https://www.monkehworks.com)",
+    "location":"coldfumonkeh/oauth2server#v1.0.0",
+    "directory":"",
+    "createPackageDirectory":"true",
+    "homepage":"https://github.com/coldfumonkeh/oauth2server",
+    "documentation":"https://github.com/coldfumonkeh/oauth2server",
+    "type":"projects",
+    "repository":{
+        "type":"git",
+        "URL":"https://github.com/coldfumonkeh/oauth2server.git"
+    },
+    "bugs":"https://github.com/coldfumonkeh/oauth2server/issues",
+    "shortDescription":"A ColdFusion wrapper to act as an OAuth2 server",
+    "keywords":[
+        "oauth2",
+        "tokens",
+        "api"
+    ],
+    "scripts":{
+        "postVersion":"package set location='coldfumonkeh/oauth2server#v`package version`'",
+        "onRelease":"publish",
+        "postPublish":"!git push --follow-tags"
+    },
+    "private":"false",
+    "ignore":[
+        "**/.*",
+        "test",
+        "tests"
+    ],
+    "testbox":{
+        "runner":[
+            {
+                "default":""
+            }
+        ],
+        "labels":[
+            
+        ],
+        "reporter":"",
+        "reporterResults":"",
+        "bundles":[
+            ""
+        ],
+        "directory":{
+            "mapping":"",
+            "recurse":true
+        },
+        "watchers":[
+            
+        ],
+        "notify":{
+            "emails":[
+                
+            ],
+            "growl":"",
+            "URL":""
+        }
+    },
+    "dependencies":{
+        "testbox":"^2.5.0+107",
+        "cf-jwt":"^1.0.0"
+    },
+    "installPaths":{
+        "testbox":"testbox",
+        "cf-jwt":"cf-jwt"
+    }
+}
