@@ -8,6 +8,15 @@ A ColdFusion component to manage generating access tokens, refresh token and aut
 [![cfmlbadges](https://cfmlbadges.monkehworks.com/images/badges/compatibility-lucee-45.svg)](https://cfmlbadges.monkehworks.com)
 [![cfmlbadges](https://cfmlbadges.monkehworks.com/images/badges/compatibility-lucee-5.svg)](https://cfmlbadges.monkehworks.com)
 
+
+Dependencies
+----------------
+
+This component has a dependency on the `cf-jwt` component, which handles the encoding and decoding of the JSON Web Tokens.
+
+To install, simply run `box install` from within this project folder.
+
+
 ## Getting Started
 
 Instantiate the component and pass in the required properties like so:
@@ -127,6 +136,8 @@ When your application received the `access_token` and decodes it, you can easily
 * `scope`: any scope values that may be in play
 * `aud`: the audience that should be consuming this request (the client application)
 
+It is worth noting that the `access_token` value is set to expire within 60 minutes of generation.
+
 ### The Refresh Token
 
 The contents of the `refresh_token` string, when decoded, will look similar to the following:
@@ -146,14 +157,6 @@ You can see that the decoded token value closely resembles that of the `access_t
 Testing
 ----------------
 The component has been tested on Adobe ColdFusion 9 and 10, Lucee 4.5 and Lucee 5.
-
-
-Dependencies
-----------------
-
-This component has a dependency on the `cf-jwt` component, which handles the encoding and decoding of the JSON Web Tokens.
-
-To install, simply run `box install` from within this project folder.
 
 
 Download
