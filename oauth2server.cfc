@@ -13,6 +13,7 @@ component accessors="true" {
 	property name="audience" type="string";
 	property name="oJWT" type="component";
 	property name="oPKCE" type="component";
+	property name="oHashID" type="component";
 
 	/**
 	* Constructor
@@ -20,7 +21,9 @@ component accessors="true" {
 	public function init(
 		required string secretKey,
 		required string issuer,
-		required string audience
+		required string audience,
+		required string hashSalt,
+		numeric authCodeLength = 16
 	){
 		setSecretKey( arguments.secretKey );
 		setIssuer( arguments.issuer );
@@ -31,6 +34,7 @@ component accessors="true" {
 			audience  = arguments.audience
 		) );
 		setoPKCE( new utils.deps.pkce.pkce() );
+		setoHashID( new utils.Hashids( arguments.hashSalt, arguments.authCodeLength ) );
 		return this;
 	}
 
@@ -103,27 +107,37 @@ component accessors="true" {
 
 	/**
 	* Generate a self-encoded authorization code
-	* @userId The user ID of the user this token is for
-	* @clientId The client ID of the app that is generating this token
-	* @redirect_uri The redirect URI to send the code back to
+	* @userId The numeric user ID of the user this token is for
+	* @clientId The numeric client ID of the app that is generating this token
 	*/
 	function generateAuthCode(
-		required string userId,
-		required string clientId,
-		required string redirect_uri
+		required numeric userId,
+		required numeric clientId
 	){
-		var oJWT          = getOJWT();
-		var dateIssued    = now();
-		var dateExpires   = dateAdd( 's', 30, dateIssued );
-		var stuPayload = {
-			'sub': arguments.userId,
-			'aud': arguments.clientId,
-			'redirect_uri': arguments.redirect_uri,
-			'iat': createEpoch( dateIssued ),
-			'exp': createEpoch( dateExpires )
-		};
-		return oJWT.encode( stuPayload );
+        var arrData = [
+            arguments.clientId,
+            arguments.userId,
+        ];
+        return encodeHash( arrData );
 	}
+
+    /**
+     * Encodes a unique hashID using the given array of numeric data
+     *
+     * @data The array of numeric data
+     */
+    public string function encodeHash( required array data ){
+        return getoHashID().encode( arguments.data );
+    }
+
+    /**
+     * Decodes a unique hash and returns the array of numeric data
+     *
+     * @hashString The hash string to decode
+     */
+    public array function decodeHash( required string hashString ){
+        return getoHashID().decode( arguments.hashString );
+    }
 
 
 	/**

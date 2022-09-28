@@ -7,11 +7,14 @@ component extends='testbox.system.BaseSpec'{
 		variables.secretKey = createUUID();
 		variables.clientId  = 'BF23473E-A6AA-477D-ADDEB3A6DC24D28E';
 		variables.issuer    = 'https://test.monkehserver.com/oauth/token';
-		oOauth2Server = new oauth2server(
-			secretKey = variables.secretKey,
-			issuer    = variables.issuer,
-			audience  = variables.clientId
-		);
+		variables.hashSalt = 'mobile-radiation-otter';
+		variables.stuInitParams = {
+			'secretKey': variables.secretKey,
+			'audience' : variables.clientId,
+			'issuer'   : variables.issuer,
+			'hashSalt' : variables.hashSalt
+		};
+		oOauth2Server = new oauth2server( argumentCollection = variables.stuInitParams );
 
 		expiredAuthCode = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MDgxNTc2ODAsInN1YiI6MTAwMCwiZXhwIjoxNTA4MTU3NzEwLCJyZWRpcmVjdF91cmkiOiJodHRwczovL215Y2FsbGJhY2suZmFrZSIsImF1ZCI6IkJGMjM0NzNFLUE2QUEtNDc3RC1BRERFQjNBNkRDMjREMjhFIn0.ED1ISAraBllT23SbN9PIUI2CCS10gSpU89OhS1QgrNY';
 
@@ -32,13 +35,14 @@ component extends='testbox.system.BaseSpec'{
 
 				var sMemento = oOauth2Server.getMemento();
 
-				expect( sMemento ).toBeStruct().toHaveLength( 5 );
+				expect( sMemento ).toBeStruct().toHaveLength( 6 );
 
 				expect( sMemento ).toHaveKey( 'secretKey' );
 				expect( sMemento ).toHaveKey( 'issuer' );
 				expect( sMemento ).toHaveKey( 'audience' );
 				expect( sMemento ).toHaveKey( 'oJWT' );
 				expect( sMemento ).toHaveKey( 'oPKCE' );
+				expect( sMemento ).toHaveKey( 'oHashID' );
 
 			} );
 
@@ -143,32 +147,76 @@ component extends='testbox.system.BaseSpec'{
 					it( 'should generate an authorization code', function() {
 
 						var userId   = 1000;
-						var redirectURI = 'https://mycallback.fake';
+						var clientId = 2000;
 
 						var authCode = oOAuth2Server.generateAuthCode(
-							userId       = userId,
-							clientId     = clientId,
-							redirect_uri = redirectURI
+							userId   = userId,
+							clientId = clientId
 						);
 
-						expect( authCode ).toBeString();
+						expect( authCode ).toBeString().toHaveLength( 16 );
 
-						// Decode the JWT to compare access token data
-						var stuAuthCodeData = oOAuth2Server.decode( authCode );
+					} );
 
-						expect( stuAuthCodeData )
-							.toBeStruct()
-							.toHaveLength( 5 )
-							.toHaveKey( 'iat' )
-							.toHaveKey( 'sub' )
-							.toHaveKey( 'exp' )
-							.toHaveKey( 'redirect_uri' )
-							.toHaveKey( 'aud' );
+					it( 'should call the encodeHash', function() {
 
+						var userId   = 1000;
+						var clientId = 2000;
 
-						expect( stuAuthCodeData[ 'sub' ] ).toBe( userId );
-						expect( stuAuthCodeData[ 'redirect_uri' ] ).toBe( redirectURI );
-						expect( stuAuthCodeData[ 'aud' ] ).toBe( clientId );
+						var mockService = createMock( 'oauth2server' ).init( argumentCollection = variables.stuInitParams );
+
+						mockService.$( method = 'encodeHash', returns = '123' );
+
+						var authCode = mockService.generateAuthCode(
+							userId   = userId,
+							clientId = clientId
+						);
+
+						expect( mockService.$count( 'encodeHash' ) ).toBe( 1 );
+
+					} );
+
+				} );
+
+				describe( 'The encodeHash method', function(){
+
+					it( 'should call the hashids.encode method', function(){
+
+						var userId   = 1000;
+						var clientId = 2000;
+
+						var mockService = createMock( 'oauth2server' ).init( argumentCollection = variables.stuInitParams );
+						var mockHashIds = createMock( 'utils.Hashids' ).init( 'salt', 8 );
+
+						mockService.setoHashID( mockHashIds );
+
+						mockHashIds.$( method = 'encode', returns = '123' );
+
+						var resp = mockService.encodeHash( [] );
+
+						expect( mockHashIds.$count( 'encode' ) ).toBe( 1 );
+
+					} );
+
+				} );
+
+				describe( 'The decodeHash method', function(){
+
+					it( 'should call the hashids.encode method', function(){
+
+						var userId   = 1000;
+						var clientId = 2000;
+
+						var mockService = createMock( 'oauth2server' ).init( argumentCollection = variables.stuInitParams );
+						var mockHashIds = createMock( 'utils.Hashids' ).init( 'salt', 8 );
+
+						mockService.setoHashID( mockHashIds );
+
+						mockHashIds.$( method = 'decode', returns = [] );
+
+						var resp = mockService.decodeHash( 123 );
+
+						expect( mockHashIds.$count( 'decode' ) ).toBe( 1 );
 
 					} );
 
@@ -189,7 +237,8 @@ component extends='testbox.system.BaseSpec'{
 						var mockService = createMock( 'oauth2Server' ).init(
 							secretKey = variables.secretKey,
 							issuer    = variables.issuer,
-							audience  = variables.clientId
+							audience  = variables.clientId,
+							hashSalt  = variables.hashSalt
 						);
 						var mockJWT = createMock( 'utils.deps.jwt.cf_jwt' ).init(
 							secretKey = variables.secretKey,
@@ -203,8 +252,6 @@ component extends='testbox.system.BaseSpec'{
 
 						expect( mockJWT.$count( 'decode' ) ).toBe( 1 );
 
-
-
 					} );
 
 				} );
@@ -217,7 +264,8 @@ component extends='testbox.system.BaseSpec'{
 						var mockService = createMock( 'oauth2Server' ).init(
 							secretKey = variables.secretKey,
 							issuer    = variables.issuer,
-							audience  = variables.clientId
+							audience  = variables.clientId,
+							hashSalt  = variables.hashSalt
 						);
 						var mockPKCE = createMock( 'utils.deps.pkce.pkce' ).init();
 						mockService.setOPKCE( mockPKCE );
