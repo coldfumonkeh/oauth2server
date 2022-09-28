@@ -12,6 +12,7 @@ component accessors="true" {
 	property name="issuer" type="string";
 	property name="audience" type="string";
 	property name="oJWT" type="component";
+	property name="oPKCE" type="component";
 
 	/**
 	* Constructor
@@ -24,11 +25,12 @@ component accessors="true" {
 		setSecretKey( arguments.secretKey );
 		setIssuer( arguments.issuer );
 		setAudience( arguments.audience );
-		setoJWT( createObject( 'component', 'cf-jwt.cf_jwt' ).init(
+		setoJWT( createObject( 'component', 'utils.deps.jwt.cf_jwt' ).init(
 			secretkey = getSecretKey(),
 			issuer    = arguments.issuer,
 			audience  = arguments.audience
 		) );
+		setoPKCE( new utils.deps.pkce.pkce() );
 		return this;
 	}
 
@@ -59,7 +61,7 @@ component accessors="true" {
 			'exp'  : createEpoch( dateExpires ), // Expires At
 			'scope': arrayToList( arguments.scope )
 		};
- 
+
 		stuResponse[ 'access_token' ]  = oJWT.encode( stuPayload );
 		stuResponse[ 'token_type' ]    = 'bearer';
 		stuResponse[ 'expires_in' ]    = 3600;
@@ -130,6 +132,22 @@ component accessors="true" {
 	*/
 	function decode( required string jwt ){
 		return getOJWT().decode( jwt );
+	}
+
+	/**
+	 * Verify a challenge (can be used by an OAuth 2.0 server to verify)
+	 *
+	 * @codeVerifier The code verifier to use when verifying the code challenge
+	 * @codeChallenge The code challenge to use when verifying
+	 */
+	public boolean function validatePKCE(
+		required string codeVerifier,
+		required string codeChallenge
+	){
+		return getOPKCE().verifyChallenge(
+			codeVerifier = arguments.codeVerifier,
+			codeChallenge = arguments.codeChallenge
+		);
 	}
 
 

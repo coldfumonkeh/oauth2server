@@ -32,14 +32,8 @@
         "tests"
     ],
     "testbox":{
-        "runner":[
-            {
-                "default":""
-            }
-        ],
-        "labels":[
-            
-        ],
+        "runner":"http://127.0.0.1:50749/tests/runner.cfm",
+        "labels":[],
         "reporter":"",
         "reporterResults":"",
         "bundles":[
@@ -49,23 +43,23 @@
             "mapping":"",
             "recurse":true
         },
-        "watchers":[
-            
-        ],
+        "watchers":[],
         "notify":{
-            "emails":[
-                
-            ],
+            "emails":[],
             "growl":"",
             "URL":""
         }
     },
     "dependencies":{
-        "testbox":"^2.5.0+107",
-        "cf-jwt":"^1.0.0"
+        "cf-jwt":"^1.0.0",
+        "pkce":"^1.0.0"
+    },
+    "devDependencies":{
+        "testbox":"^4.5.0+5"
     },
     "installPaths":{
-        "testbox":"testbox",
-        "cf-jwt":"cf-jwt"
+        "testbox":"testbox/",
+        "cf-jwt":"utils/deps/jwt/",
+        "pkce":"utils/deps/pkce/"
     }
 }
