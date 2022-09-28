@@ -14,7 +14,23 @@ Dependencies
 
 This component has a dependency on the `cf-jwt` component, which handles the encoding and decoding of the JSON Web Tokens.
 
+It also has a dependency on the `pkce` component, which handles the generation and verification of PKCE (Proof Key for Code Exchange) values for the OAuth 2.0 authorization code flow.
+
 To install, simply run `box install` from within this project folder.
+
+The component also makes use of the hashids CFML component created by Dan G. Switzer, II: 
+https://github.com/dswitzer/hashids.coldfusion
+
+
+
+
+The OAuth2 Server component has been redevloped to allow you to choose to create your authorization codes as encrypted JWT strings or as hash id values.
+
+By default, the length of the hashids is set to 16 characters. This can be adjusted in the constructor method.
+
+The `hashSalt` parameter is used to salt the hashid values.
+
+The `secretKey` parameter is used to encode the JWT data.
 
 
 ## Getting Started
@@ -27,21 +43,45 @@ var clientId  = 'BF23473E-A6AA-477D-ADDEB3A6DC24D28E';
 var issuer    = 'https://test.monkehserver.com/oauth/token';
 
 var oOauth2Server = new oauth2server(
-	secretKey = secretKey,
-	issuer    = issuer,
-	audience  = clientId
+	secretKey      = secretKey,
+	issuer         = issuer,
+	audience       = clientId,
+	hashSalt       = 'some-random-string',
+	authCodeLength = 16 // default is 16
 );
 ```
 
 ### Generating an authorization code
 
-To generate an authorization code (the first step in the OAuth2 server-side flow) simply provide the `userId` from the resource owner (after they have logged into your application), the `clientId` and the provided `redirect_uri` value:
+To generate an authorization code (the first step in the OAuth2 server-side flow) simply provide the `userId` from the resource owner (after they have logged into your application) and a numeric representation for the `clientId`:
 
 ```
 var authCode = oOAuth2Server.generateAuthCode(
-	userId       = userId,
-	clientId     = clientId,
-	redirect_uri = redirectURI
+	userId   = userId,
+	clientId = clientId,
+	format   = 'hash' // default value is hash
+);
+```
+
+This will generate a hashId value to the length declared in the component configuration, for example:
+
+```gB0NV05ehAs8lkQy```
+
+This can be decoded to read the numeric values sent in:
+
+```
+var arrData = oauth2server.decodeHash( 'gB0NV05ehAs8lkQy' );
+
+// resulting in [ 100, 27658 ], for example
+```
+
+Alterantively, you can choose to create a JWT authentication code:
+
+```
+var authCode = oOAuth2Server.generateAuthCode(
+	userId   = userId,
+	clientId = clientId,
+	format   = 'jwt'
 );
 ```
 
@@ -50,7 +90,7 @@ This will generate a self-signed authorization code. As such, you do not need to
 The returned auth code will resemble the following:
 
 ```
-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MDgxNTkwODEsInN1YiI6MTAwMCwiZXhwIjoxNTA4MTU5MTExLCJyZWRpcmVjdF91cmkiOiJodHRwczovL215Y2FsbGJhY2suZmFrZSIsImF1ZCI6IkJGMjM0NzNFLUE2QUEtNDc3RC1BRERFQjNBNkRDMjREMjhFIn0.JGZ1WMBXXE4BE5iwdmkrq5mJYK6lirkTqChWdy0IS1s
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NjQzNzQyMzUsInN1YiI6MTAwMCwiZXhwIjoxNjY0Mzc0MjY1LCJhdWQiOjIwMDB9.JgwUNpEuq_DVYdqhm-0u9Vr7QA_lxMCl9_JhhUzG0WI
 ```
 
 When it is sent back to your server to request the access token, you can decode it to obtain the necessary data:
@@ -63,21 +103,19 @@ In this example, `stuAuthCodeData` will contain the following information within
 
 ```
 {
-	"iat":1508159081,
-	"sub":1000,
-	"exp":1508159111,
-	"redirect_uri":"https://mycallback.fake",
-	"aud":"BF23473E-A6AA-477D-ADDEB3A6DC24D28E"
+  "iat": 1664374235, // issued at
+  "sub": 1000, // the user id (subscriber)
+  "exp": 1664374265, // expiry time
+  "aud": 2000 // the client id (audience)
 }
 ```
 
 * `iat`: issued at time (in seconds)
 * `sub`: the subscriber - the userId / resource owner Id
 * `exp`: the expiry time (in seconds)
-* `redirect_uri`: the redirect uri value to validate against the client application
 * `aud`: the audience that should be consuming this request (the client application)
 
-It is important to note that the authorization code is only valid for 30 seconds to avoid any interference.
+It is important to note that the authorization code is only valid for a maximum of 30 seconds to avoid any interference.
 
 ### Generating an Access Token
 
@@ -162,11 +200,6 @@ The component has been tested on Adobe ColdFusion 9 and 10, Lucee 4.5 and Lucee 
 Download
 ----------------
 [OAuth2 Server](https://github.com/coldfumonkeh/oauth2server/downloads)
-
-
-### 1.0.0 - October 16, 2017
-
-- Commit: Initial Release
 
 
 MIT License

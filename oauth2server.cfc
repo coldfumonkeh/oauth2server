@@ -112,13 +112,34 @@ component accessors="true" {
 	*/
 	function generateAuthCode(
 		required numeric userId,
-		required numeric clientId
+		required numeric clientId,
+		string format = 'hash'
 	){
         var arrData = [
             arguments.clientId,
             arguments.userId,
         ];
-        return encodeHash( arrData );
+		if( arguments.format == 'hash' ){
+        	return encodeHash( arrData );
+		} else {
+			return generateJWTAuthCode( userId = arguments.userId, clientId = arguments.clientId );
+		}
+	}
+
+	private string function generateJWTAuthCode(
+		required numeric userId,
+		required numeric clientId
+	){
+		var oJWT          = getOJWT();
+		var dateIssued    = now();
+		var dateExpires   = dateAdd( 's', 30, dateIssued );
+		var stuPayload = {
+			'sub': arguments.userId,
+			'aud': arguments.clientId,
+			'iat': createEpoch( dateIssued ),
+			'exp': createEpoch( dateExpires )
+		};
+		return oJWT.encode( stuPayload );
 	}
 
     /**

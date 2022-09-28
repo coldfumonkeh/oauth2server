@@ -143,36 +143,79 @@ component extends='testbox.system.BaseSpec'{
 
 				describe( 'The generateAuthCode() method', function(){
 
+					describe( 'The hash option', function(){
 
-					it( 'should generate an authorization code', function() {
 
-						var userId   = 1000;
-						var clientId = 2000;
+						it( 'should generate an authorization code', function() {
 
-						var authCode = oOAuth2Server.generateAuthCode(
-							userId   = userId,
-							clientId = clientId
-						);
+							var userId   = 1000;
+							var clientId = 2000;
 
-						expect( authCode ).toBeString().toHaveLength( 16 );
+							var authCode = oOAuth2Server.generateAuthCode(
+								userId   = userId,
+								clientId = clientId
+							);
+
+							expect( authCode ).toBeString().toHaveLength( 16 );
+
+						} );
+
+						it( 'should call the encodeHash method', function() {
+
+							var userId   = 1000;
+							var clientId = 2000;
+
+							var mockService = createMock( 'oauth2server' ).init( argumentCollection = variables.stuInitParams );
+
+							mockService.$( method = 'encodeHash', returns = '123' );
+
+							var authCode = mockService.generateAuthCode(
+								userId   = userId,
+								clientId = clientId
+							);
+
+							expect( mockService.$count( 'encodeHash' ) ).toBe( 1 );
+
+						} );
 
 					} );
 
-					it( 'should call the encodeHash', function() {
+					describe( 'The JWT option', function(){
 
-						var userId   = 1000;
-						var clientId = 2000;
+						it( 'should generate an authorization code as a JWT', function() {
 
-						var mockService = createMock( 'oauth2server' ).init( argumentCollection = variables.stuInitParams );
+							var userId   = 1000;
+							var clientId = 2000;
 
-						mockService.$( method = 'encodeHash', returns = '123' );
+							var authCode = oOAuth2Server.generateAuthCode(
+								userId   = userId,
+								clientId = clientId,
+								format = 'jwt'
+							);
 
-						var authCode = mockService.generateAuthCode(
-							userId   = userId,
-							clientId = clientId
-						);
+							expect( authCode ).toBeString();
+							expect( listLen( authCode, '.' ) ).toBe( 3 );
 
-						expect( mockService.$count( 'encodeHash' ) ).toBe( 1 );
+						} );
+
+						it( 'should call the generateJWTAuthCode method', function() {
+
+							var userId   = 1000;
+							var clientId = 2000;
+
+							var mockService = createMock( 'oauth2server' ).init( argumentCollection = variables.stuInitParams );
+
+							mockService.$( method = 'generateJWTAuthCode', returns = '123' );
+
+							var authCode = mockService.generateAuthCode(
+								userId   = userId,
+								clientId = clientId,
+								format = 'jwt'
+							);
+
+							expect( mockService.$count( 'generateJWTAuthCode' ) ).toBe( 1 );
+
+						} );
 
 					} );
 
